@@ -1,5 +1,8 @@
 package org.titanium.test;
 
+import org.monte.media.Format;
+import org.monte.media.math.Rational;
+import org.monte.screenrecorder.ScreenRecorder;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -12,16 +15,53 @@ import org.titanium.pages.LogInPage;
 import org.titanium.pages.homePage;
 import org.titanium.reports.BaseClass;
 import org.titanium.reports.JyperionListener;
+import org.titanium.video.SpecializedScreenRecorder;
 
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
+
+import static org.monte.media.FormatKeys.*;
+import static org.monte.media.FormatKeys.EncodingKey;
+import static org.monte.media.FormatKeys.FrameRateKey;
+import static org.monte.media.FormatKeys.KeyFrameIntervalKey;
+import static org.monte.media.FormatKeys.MediaTypeKey;
+import static org.monte.media.VideoFormatKeys.*;
 
 
 @Listeners(JyperionListener.class)
 public class LogInFacebook extends BaseClass {
+    private ScreenRecorder screenRecorder;
+
+    private void stopRecording() throws IOException {
+        this.screenRecorder.stop();
+    }
+
+    private void startRecording(String videoPath) throws IOException, AWTException {
+        File file = new File(videoPath);
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int width = screenSize.width;
+        int height = screenSize.height;
+
+        Rectangle captureSize = new Rectangle(0,0,width,height);
+
+        GraphicsConfiguration gc = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+
+        this.screenRecorder = new SpecializedScreenRecorder(gc, captureSize,
+                new Format(MediaTypeKey,MediaType.FILE, MimeTypeKey, MIME_AVI),
+                new Format(MediaTypeKey, MediaType.VIDEO, EncodingKey, ENCODING_AVI_TECHSMITH_SCREEN_CAPTURE,
+                        CompressorNameKey, ENCODING_AVI_TECHSMITH_SCREEN_CAPTURE, DepthKey, 24, FrameRateKey, Rational.valueOf(15),
+                        QualityKey,1.0f, KeyFrameIntervalKey, 15*60),
+                new Format(MediaTypeKey, MediaType.VIDEO, EncodingKey, "black",FrameRateKey, Rational.valueOf(30)),
+                null, file, "ScreenRecorded");
+
+        this.screenRecorder.start();
+    }
+
 
     WebDriver driver;
     LogInPage loginpage;
@@ -34,19 +74,25 @@ public class LogInFacebook extends BaseClass {
 
 
     @BeforeMethod
-    public void launchBrowser(){
+    public void launchBrowser() throws IOException, AWTException {
 
         System.setProperty("webdriver.chrome.driver", chromePath);
         driver = new ChromeDriver();
         driver.manage().window().maximize();
+        startRecording(System.getProperty("user.dir") + "/video/");
         driver.get(baseURL);
         wait = new WebDriverWait(driver, 15);
         driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);
     }
 
     @AfterMethod
-    public  void closeB(){
+    public void closeB(){
         driver.close();
+    }
+
+    @AfterSuite
+    public void Stop() throws IOException {
+        stopRecording();
     }
 
     @DataProvider(name = "SearchProvider")
