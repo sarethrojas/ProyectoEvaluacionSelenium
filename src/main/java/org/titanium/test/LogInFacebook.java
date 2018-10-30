@@ -10,13 +10,18 @@ import org.testng.Assert;
 import org.testng.annotations.*;
 import org.titanium.pages.LogInPage;
 import org.titanium.pages.homePage;
+import org.titanium.reports.BaseClass;
+import org.titanium.reports.JyperionListener;
 
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
 
-public class LogInFacebook {
+
+@Listeners(JyperionListener.class)
+public class LogInFacebook extends BaseClass {
 
     WebDriver driver;
     LogInPage loginpage;
@@ -44,13 +49,53 @@ public class LogInFacebook {
         driver.close();
     }
 
-    @Test(priority = 0)
-    public void happyPath() throws AWTException, InterruptedException {
+    @DataProvider(name = "SearchProvider")
+    public Object [][] getDataFromDataProvider(Method m) {
+
+        if(m.getName().equals("LoginLogout")){
+            return new Object[][]{
+                    {"m_sareth_8@hotmail.com", "sarethithaa1"},
+            };
+        }else if(m.getName().equals("userCpassI")){
+            return new Object[][]{
+                    {"m_sareth_8@hotmail.com", "123456789"},
+            };
+        }else if(m.getName().equals("UserIpassI")){
+            return new Object[][]{
+                    {"eme_sareth@gmail.com", "123456789"},
+            };
+        }else if(m.getName().equals("UserBpassC")){
+            return new Object[][]{
+                    {"", "sarethithaa1"},
+            };
+        }else if(m.getName().equals("UserBpassI")){
+            return new Object[][]{
+                    {"", "123456789"},
+            };
+        }else if(m.getName().equals("UserBpassB")){
+            return new Object[][]{
+                    {"", ""},
+            };
+        }else if(m.getName().equals("UserIpassC")){
+            return new Object[][]{
+                    {"eme_sareth@gmail.com", ""},
+            };
+        }else{
+            return new Object[][]{
+                    {"m_sareth_8@hotmail.com", ""},
+            };
+        }
+
+    }
+
+//Tests
+    @Test(dataProvider = "SearchProvider")
+    public void LoginLogout(String email, String pass) throws AWTException, InterruptedException {
         loginpage = new LogInPage(driver);
         homepage = new homePage(driver);
 
-        loginpage.setEmail("m_sareth_8@hotmail.com");
-        loginpage.setPass("sarethithaa1");
+        loginpage.setEmail(email);
+        loginpage.setPass(pass);
         loginpage.clickOnSubmit();
 
         Thread.sleep(1500);
@@ -75,13 +120,14 @@ public class LogInFacebook {
     }
 
     //Usuario correcto, Password incorrecto
-    @Test
-    public void userCpassI()  {
+    @Test(dataProvider = "SearchProvider")
+    public void userCpassI(String email, String pass)  {
         loginpage = new LogInPage(driver);
 
-        loginpage.setEmail("m_sareth_8@hotmail.com");
-        loginpage.setPass("123456789");
+        loginpage.setEmail(email);
+        loginpage.setPass(pass);
         loginpage.clickOnSubmit();
+
         expectedResult = "La contraseña que ingresaste es incorrecta. ¿Olvidaste tu contraseña?";
         actualResult = loginpage.warningMess();
         Assert.assertEquals(actualResult,expectedResult, "Test no pasó, error en los datos");
@@ -89,27 +135,29 @@ public class LogInFacebook {
     }
 
     //Usuario incorrecto, contraseña incorrecta
-   @Test
-    public void UserIpassI()  {
+   @Test(dataProvider = "SearchProvider")
+    public void UserIpassI(String email, String pass)  {
         loginpage = new LogInPage(driver);
-        loginpage.setEmail("eme_sareth@gmail.com");
-        loginpage.setPass("123456789");
+        loginpage.setEmail(email);
+        loginpage.setPass(pass);
         loginpage.clickOnSubmit();
-       expectedResult = "El correo electrónico que ingresaste no coincide con ninguna cuenta. Regístrate para crear una cuenta.";
-       actualResult = loginpage.warningMess();
-       Assert.assertEquals(actualResult,expectedResult, "Test no pasó, error en los datos");
+
+        expectedResult = "El correo electrónico que ingresaste no coincide con ninguna cuenta. Regístrate para crear una cuenta.";
+        actualResult = loginpage.warningMess();
+        Assert.assertEquals(actualResult,expectedResult, "Test no pasó, error en los datos");
 
 
     }
 
     //Usuario incorrecto, contraseña correcta
-    @Test
-    public void UserIpassC()  {
+    @Test(dataProvider = "SearchProvider")
+    public void UserIpassC(String email, String pass)  {
         loginpage = new LogInPage(driver);
 
-        loginpage.setEmail("eme_sareth@gmail.com");
-        loginpage.setPass("sarethithaa1");
+        loginpage.setEmail(email);
+        loginpage.setPass(pass);
         loginpage.clickOnSubmit();
+
         expectedResult = "El correo electrónico que ingresaste no coincide con ninguna cuenta. Regístrate para crear una cuenta.";
         actualResult = loginpage.warningMess();
         Assert.assertEquals(actualResult,expectedResult, "Test no pasó, error en los datos");
@@ -118,13 +166,14 @@ public class LogInFacebook {
     }
 
     //Usuario en blanco, contraseña correcta
-    @Test
-    public void UserBpassC()  {
+    @Test(dataProvider = "SearchProvider")
+    public void UserBpassC(String email, String pass)  {
         loginpage = new LogInPage(driver);
 
-        loginpage.setEmail("");
-        loginpage.setPass("sarethithaa1");
+        loginpage.setEmail(email);
+        loginpage.setPass(pass);
         loginpage.clickOnSubmit();
+
         expectedResult = "El correo electrónico o el número de teléfono que ingresaste no coinciden con ninguna cuenta. Regístrate para crear una cuenta.";
         actualResult = loginpage.warningMess();
         Assert.assertEquals(actualResult,expectedResult, "Test no pasó, error en los datos");
@@ -133,13 +182,14 @@ public class LogInFacebook {
     }
 
     //Usuario blanco, contraseña incorrecta
-    @Test
-    public void UserBpassI()  {
+    @Test(dataProvider = "SearchProvider")
+    public void UserBpassI(String email, String pass)  {
         loginpage = new LogInPage(driver);
 
-        loginpage.setEmail("");
-        loginpage.setPass("123456789");
+        loginpage.setEmail(email);
+        loginpage.setPass(pass);
         loginpage.clickOnSubmit();
+
         expectedResult = "El correo electrónico o el número de teléfono que ingresaste no coinciden con ninguna cuenta. Regístrate para crear una cuenta.";
         actualResult = loginpage.warningMess();
         Assert.assertEquals(actualResult,expectedResult, "Test no pasó, error en los datos");
@@ -148,13 +198,14 @@ public class LogInFacebook {
     }
 
     //Usuario en blanco, contraseña en blanco
-    @Test
-    public void UserBpassB()  {
+    @Test(dataProvider = "SearchProvider")
+    public void UserBpassB(String email, String pass)  {
         loginpage = new LogInPage(driver);
 
-        loginpage.setEmail("");
-        loginpage.setPass("");
+        loginpage.setEmail(email);
+        loginpage.setPass(pass);
         loginpage.clickOnSubmit();
+
         expectedResult = "El correo electrónico o el número de teléfono que ingresaste no coinciden con ninguna cuenta. Regístrate para crear una cuenta.";
         actualResult = loginpage.warningMess();
         Assert.assertEquals(actualResult,expectedResult, "Test no pasó, error en los datos");
@@ -163,13 +214,14 @@ public class LogInFacebook {
     }
 
     //Usuario correcto, Password en blanco
-    @Test
-    public void userCpassB()  {
+    @Test(dataProvider = "SearchProvider")
+    public void userCpassB(String email, String pass)  {
         loginpage = new LogInPage(driver);
 
-        loginpage.setEmail("m_sareth_8@hotmail.com");
-        loginpage.setPass("");
+        loginpage.setEmail(email);
+        loginpage.setPass(pass);
         loginpage.clickOnSubmit();
+
         expectedResult = "La contraseña que ingresaste es incorrecta. ¿Olvidaste tu contraseña?";
         actualResult = loginpage.warningMess();
         Assert.assertEquals(actualResult,expectedResult, "Test no pasó, error en los datos");
